@@ -1,0 +1,389 @@
+﻿<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <script type="text/javascript" src="zepto.min.js"></script>
+
+    <style type="text/css">
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            height: 100%;
+        }
+
+        .gm-style-iw {
+            width: 320px;
+            padding: 6px 0 2px;
+            top: 0;
+            left: 0;
+            text-align: center;
+            z-index: 999;
+            /* box-shadow: 0 0px 1px rgba(178, 178, 178, 0.6) !important;
+            border: 1px solid rgba(72, 181, 233, 0.6) !important;*/
+            background-color: rgba(0, 0, 0, 0.4) !important;
+            border-radius: 4px;
+        }
+
+            .gm-style-iw + div {
+                display: none;
+            }
+
+        .jianjiao {
+            position: absolute;
+            top: 44px;
+            left: 40%;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 10px solid rgba(0,0,0,0.5);
+        }
+
+    </style>
+
+</head>
+<body>
+<div id="map"></div>
+<script type="text/javascript">
+
+
+        setTimeout(function () {
+            return;
+        var infos = '[{"spotId":"France.Pairs.afett","name":"埃菲尔铁塔","note":"距市中心4.0km","lat":48.858359,"lng":2.294494,"iimg":0},{"spotId":"France.Pairs.asbwg","name":"奥赛博物馆","note":"距市中心1.8km","lat":48.859953,"lng":2.326561,"iimg":0},{"spotId":"France.Pairs.baligejuyuan","name":"巴黎歌剧院","note":"距市中心2.4km","lat":48.8718946,"lng":2.3317771,"iimg":0},{"spotId":"France.Pairs.blsmy","name":"巴黎圣母院","note":"距市中心96m","lat":48.85296,"lng":2.349908,"iimg":0},{"spotId":"France.Pairs.dllhy","name":"杜乐丽花园","note":"距市中心1.9km","lat":48.863467,"lng":2.327495,"iimg":0},{"spotId":"France.Pairs.dsn","name":"迪士尼","note":"距市中心31.3km","lat":48.872229,"lng":2.775811,"iimg":0},{"spotId":"France.Pairs.fdbl","name":"枫丹白露","note":"距市中心56.3km","lat":48.404734,"lng":2.701265,"iimg":0},{"spotId":"France.Pairs.fesg","name":"凡尔赛宫","note":"距市中心17.6km","lat":48.804859,"lng":2.120355,"iimg":0},{"spotId":"France.Pairs.kxm","name":"凯旋门","note":"距市中心4.5km","lat":48.873786,"lng":2.295025,"iimg":0},{"spotId":"France.Pairs.ldmsg","name":"罗丹美术馆","note":"距市中心2.4km","lat":48.855292,"lng":2.3158557,"iimg":0},{"spotId":"France.Pairs.lfg","name":"卢浮宫","note":"距市中心1.1km","lat":48.860603,"lng":2.337643,"iimg":0},{"spotId":"France.Pairs.lsbgy","name":"卢森堡公园","note":"距市中心1.2km","lat":48.846263,"lng":2.337145,"iimg":0},{"spotId":"France.Pairs.mmtgd","name":"蒙马特高地","note":"距市中心3.7km","lat":48.886105,"lng":2.343443,"iimg":0},{"spotId":"France.Pairs.ppdyszx","name":"蓬皮杜艺术中心","note":"距市中心844m","lat":48.860642,"lng":2.35224,"iimg":0},{"spotId":"France.Pairs.snh","name":"塞纳河","note":"距市中心4.2km","lat":48.858835,"lng":2.291467,"iimg":0},{"spotId":"France.Pairs.sxdjt","name":"圣心大教堂","note":"距市中心3.7km","lat":48.886698,"lng":2.343106,"iimg":0},{"spotId":"France.Pairs.xhgc","name":"协和广场","note":"距市中心2.4km","lat":48.865628,"lng":2.321234,"iimg":0},{"spotId":"France.Pairs.xxc","name":"先贤祠","note":"距市中心818m","lat":48.846216,"lng":2.346412,"iimg":0},{"spotId":"France.Pairs.xxlsdj","name":"香榭丽舍大街","note":"距市中心3.4km","lat":48.869259,"lng":2.309282,"iimg":0},{"spotId":"France.Pairs.ylsdssq","name":"亚历山大三世桥","note":"距市中心2.8km","lat":48.8638907,"lng":2.313549,"iimg":0},{"spotId":"France.Pairs.ysq","name":"艺术桥","note":"距市中心991m","lat":48.8583424,"lng":2.3375,"iimg":0},{"spotId":"France.Pairs.zsgc","name":"战神广场","note":"距市中心3.7km","lat":48.855635,"lng":2.298619,"iimg":0}]'
+        var boundStrig = '[{"lat":48.404734,"lng":2.120355},{"lat":48.886698,"lng":2.775811}]'
+        loadScenicInfos(infos, boundStrig)
+
+    }, 1000);
+
+
+
+    var map;
+    var lastZoom = 13;              //缩放级别
+    var scenicInfos = new Array();    //景区marker数组(spotId,name,note,lat,lng,iimg,shows[])
+    var infowindows = new Array();  //窗口数组
+    var scenicMarkers = new Array();    //景区图标数组
+    var anchorMarkers = new Array(); //锚点marker数组
+    var anMarker;                   //新增锚点
+    var cursorMarker;               //光标marker
+    var anchorMode = false;
+    var images = new Array();       //图片数组
+    images[0] = 'icon_red.png'; //热门景区图标0
+    images[1] = 'icon_blue.png'; //普通景区图标1
+    images[2] = 'icon_md_red.png'; //锚点图标2
+    images[3] = 'icon_md_blue.png'; //新锚点图标3
+    images[4] = 'icon_location.png';    //定位图标4
+
+    /**
+    * 初始化地图界面
+    */
+    function initMap() {
+        lastZoom = 9;
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: { lat: 48.859845 , lng: 2.337141 },
+            mapTypeControl: false,
+            streetViewControl: false,
+            rotateControl: false,
+            zoom: lastZoom
+        });
+        var posi = map.getCenter();
+        cursorMarker = new google.maps.Marker({
+            position: posi,
+            map: map,
+            icon: images[4]
+        });
+        cursorMarker.setMap(null);
+    }
+
+    /**
+    * 设置地图显示区域范围
+    * 由WebView调用
+    */
+    window.setBounds = function(boundString){
+        var bounds = new google.maps.LatLngBounds();
+        var boundArray;
+        if(typeof boundString == 'string')
+            boundArray = JSON.parse(boundString);
+        else
+            boundArray = boundString;
+        for(var ii = 0; ii < boundArray.length; ii++){
+            var coordinate = new google.maps.LatLng({lat: boundArray[ii].lat, lng: boundArray[ii].lng});
+            bounds.extend(coordinate);
+        }
+        map.fitBounds(bounds);
+    }
+
+    /**
+    * 添加新锚点显示
+    * 由webView调用
+    */
+    window.addNewAnchor = function() {
+        if (typeof anMarker == 'undefined') {//未定义marker
+            var posi = map.getCenter();
+            anMarker = new google.maps.Marker({
+                position: posi,
+                map: map,
+                icon: images[3],
+                draggable: true,
+                label: '新锚点'
+            });
+            anMarker.setMap(map);
+        }
+        else {//新锚点有定义
+            var posi = map.getCenter();
+            anMarker.setPosition(posi);
+            anMarker.setLabel('新锚点');
+            anMarker.setVisible(true);
+            anMarker.setMap(map);
+        }
+    }
+
+    /**
+    * 加载景区数据,并将景区数据作为marker添加到地图中
+    * 由webView调用
+    */
+    window.loadScenicInfos = function(infos,boundString) {
+        var bounds = new google.maps.LatLngBounds();
+        var boundArray;
+        if(typeof boundString == 'string')
+            boundArray = JSON.parse(boundString);
+        else
+            boundArray = boundString;
+        for(var ii = 0; ii < boundArray.length; ii++){
+            var coordinate = new google.maps.LatLng({lat: boundArray[ii].lat, lng: boundArray[ii].lng});
+            bounds.extend(coordinate);
+        }
+        map.fitBounds(bounds);
+
+        if(typeof infos == 'string')
+            scenicInfos = JSON.parse(infos);
+        else
+            scenicInfos = infos;
+        for (var ii = 0; ii < scenicInfos.length; ii++) {
+            var info = scenicInfos[ii];
+             infowindows[ii] = new google.maps.InfoWindow({
+                content: '<div class="myinfowindows" id="' + info.spotId + '" onclick="selectdiv(this.id)"><font color="white"><strong>' + info.name + '</strong><br>' + info.note + '</font></div>'
+            });
+
+            scenicMarkers[ii] = new google.maps.Marker({
+                position: { lat: info.lat, lng: info.lng },
+                map: map,
+                icon: images[info.iimg],
+                title: info.name
+            });
+            scenicMarkers[ii].setMap(map);
+            addMarkerAndInfoWindow(scenicMarkers[ii], infowindows[ii]);
+        }
+
+         //$(".gm-style-iw").append('<i class="jianjiao"></i>');
+    }
+
+    /**
+    * 加载锚点数据，并显示在地图上
+    * 由webView调用
+    */
+    window.loadAnchorInfos = function(infos) {
+        var anchors;
+        if(typeof infos == 'string')
+            anchors = JSON.parse(infos);
+        else
+            anchors = infos;
+        var kk = anchorMarkers.length - 1;
+        for (var ii = kk; ii>=0; ii++) {    //清除旧的锚点数据
+            if (typeof anchorMarkers[ii] == 'object') {
+                anchorMarkers[ii].setMap(null);
+                anchorMarkers.pop();
+            }
+        }
+        for (var ii = 0; ii < anchors.length; ii++) {//添加所有锚点
+            var info = anchors[ii];
+            anchorMarkers[ii] = new google.maps.Marker({
+                position: { lat: info.lat, lng: info.lng },
+                map: map,
+                icon: images[2],
+                label: info.name
+            });
+            anchorMarkers[ii].setMap(map);
+        }
+    }
+
+    /**
+    * 显示光标
+    * param cursorString 经纬度串,'纬度,经度'
+    * 由WebView调用
+    */
+    window.showCursor = function(lat,lng){
+        myLatlng = new google.maps.LatLng(lat,lng);
+        cursorMarker.setPosition(myLatlng);
+        cursorMarker.setMap(map);
+    }
+
+    /**
+    * 隐藏光标
+    * 由WebView调用
+    */
+    window.hideCursor = function(){
+        cursorMarker.setMap(null);
+    }
+
+    /**
+    * 清除当前新增锚点
+    * 由webView调用
+    */
+    window.clearAnchor = function() {
+        if (typeof anMarker != 'undefined') {//已定义marker
+            anMarker.setMap(null);
+            anMarker.setVisible(false);
+        }
+    }
+
+    /**
+    * 删除指定索引的锚点
+    * 由WebView调用
+    */
+    window.removeAnchor = function(index){
+        var ix;
+        if(typeof index == 'string')
+            ix = Number(index);
+        else
+            ix = index;
+        if((ix>=0) && (ix < anchorMarkers.length)){
+            anchorMarkers[ix].setMap(null);
+            anchorMarkers[ix].splice(index, 1);
+        }
+    }
+
+    /**
+    * 将新锚点保存到锚点数组中
+    * param anchorName 锚点名称
+    * 由webView调用
+    */
+    window.updateAnchorName =  function(anchorName) {
+        var coordinate;
+        if (typeof anMarker != 'undefined') {//已定义marker
+            coordinate = anMarker.getPosition();
+            var index = anchorMarkers.length;
+            anchorMarkers[index] = new google.maps.Marker({
+                position: coordinate,
+                map: map,
+                icon: images[2],
+                label: anchorName
+            }); //添加新锚点
+            anchorMarkers[index].setMap(map);
+            anMarker.setMap(null);      //删除新锚点
+            anMarker.setVisible(false);
+        }
+        return coordinate.lat() + ',' + coordinate.lng();
+    }
+
+    /**
+    * 添加景区图标点击事件并显示景区气泡
+    * param markerx     景区图标
+    * param infoWindowx 景区气泡
+    */
+    function addMarkerAndInfoWindow(markerx, infoWindowx) {
+   		google.maps.event.addListener(infoWindowx, 'domready', function () {
+
+            // Reference to the DIV that wraps the bottom of infowindow
+            var iwOuter = $('.gm-style-iw');
+            iwOuter.css("top","32px");
+            // iwOuter.css("left","10px");
+            iwOuter.css("overflow","initial");
+			iwOuter.siblings('div').hide();
+
+            /* Since this div is in a position prior to .gm-div style-iw.
+             * We use jQuery and create a iwBackground variable,
+             * and took advantage of the existing reference .gm-style-iw for the previous div with .prev().
+            */
+            var iwBackground = iwOuter.prev();
+
+			 $(".gm-style-iw").not(".finishedStyle").addClass("finishedStyle").append('<i class="jianjiao"></i>');
+        });
+
+
+        markerx.addListener('click', function () {
+            infoWindowx.open(map, markerx);
+        });
+        infoWindowx.open(map, markerx);
+    }
+
+    /**
+    * 点击气泡的处理函数
+    */
+    function selectdiv(scenicId) {
+        callbackObj.sendScenicId(scenicId);
+    }
+
+    /**
+    * 设置锚点方式
+    * param flag true=锚点方式,false=退出锚点方式
+    * 由webView调用
+    */
+    window.setAnchorMode = function(flag) {
+        anchorMode = flag;
+        if (anchorMode) {//设置锚点方式
+            google.maps.event.addDomListener(map, 'click', function (event) {
+                var index = anchorMarkers.length;
+                anchorMarkers[index] = new google.maps.Marker({
+                    position: event.latLng,
+                    map: map,
+                    draggable: true,
+                    label:'新锚点',
+                    icon: images[2]
+                });
+                anchorMarkers[index].setMap(map);
+                addAnchorClick(anchorMarkers[index]);
+
+            });
+        }
+        else {//取消锚点方式
+            google.maps.event.clearListeners(map, 'click');
+            for (var ii = 0; ii < anchorMarkers.length; ii++) {
+                anchorMarkers[ii].setMap(null);
+            }
+        }
+    }
+
+    /**
+    * 获取新锚点的经纬度
+    * 由WebView调用
+    */
+    window.getAnchorCoordinate = function(){
+        var coordinate = '';
+        if (typeof anMarker != 'undefined') {//已定义marker
+            var posi = anMarker.getPosition();
+            coordinate = String(posi.lat()) + "," + String(posi.lng());
+        }
+        return coordinate;
+    }
+
+    /**
+    * 添加marker的点击事件
+    */
+    function addAnchorClick(markerx) {
+        markerx.addListener('click', function () {
+            var ii;
+            for (ii = 0; ii < anchorMarkers.length ; ii++) {
+                if (anchorMarkers[ii] == markerx)
+                    break;
+            }
+            callbackObj.receiveAnchor(ii, anchorMarkers[ii].getPosition().lat(), anchorMarkers[ii].getPosition().lng());
+        });
+    }
+
+    function myfunction(){
+        //debugger;
+
+
+    }
+
+
+</script>
+<script type="text/javascript"
+        src="http://maps.google.cn/maps/api/js?region=cn&language=zh-CN&key=AIzaSyCDMHOMKuecRJTVyXLzOiBpnVs5wY5U57M&callback=initMap">
+</script>
+
+</body>
+</html>
